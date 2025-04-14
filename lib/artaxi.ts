@@ -30,6 +30,8 @@ function identSendinitVarWorker(token: string, profilId: string) {
 		urlApi: process.env.NEXT_PUBLIC_API_URL,
 	})
 	channelInitVar.close()
+	console.log("identSendinitVarWorker FIN")
+
 }
 
 export async function identClear() {
@@ -68,7 +70,7 @@ export function identGetProfilId() {
 }
 
 export function getVersion(){
-	return "1.0.3"
+	return "1.0.15"
 }
 
 

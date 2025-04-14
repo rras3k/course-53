@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import imgHome from "@/public/icons/icon-48x48.png";
+import imgHome from "@/public/icon-48x48.png";
 import { twMerge } from "tailwind-merge";
 import { clsx } from 'clsx';
 

@@ -67,6 +67,11 @@ function identClear() {
 	clearInterval(interval)
 }
 
+if (!periodiqueEncours){
+	periodiqueEncours=true
+	backProcess()
+}
+
 function backProcess() {
 	backProcessAction()
 	interval = setInterval(async () => {
@@ -77,6 +82,7 @@ function backProcess() {
 }
 
 function backProcessAction(){
+	console.log("backProcessAction", token )
 	if (token === "" || urlApi === "") {
 		// On supprime tout dans indexDB et cache pour être rediriger par un middleware vers identification
 		console.log("identClearAndPost backProcess 1")
@@ -85,7 +91,7 @@ function backProcessAction(){
 	else {
 		// chargement API des courses d'un taxi
 		if (isProfilTaxi()) getCoursesTaxi()
-		else if (isProfilAdmin()) getCoursesAllTaxis()
+	//	else if (isProfilAdmin()) getCoursesAllTaxis()
 		else {
 			console.log("identClearAndPost backProcess 2", profilId)
 			identClearAndPost()
@@ -94,7 +100,7 @@ function backProcessAction(){
 }
 
 async function getCoursesTaxi() {
-	console.log(">getCoursesTaxi",token)
+	console.log("> getCoursesTaxi",token)
 	try {
 		const response = await fetch(
 			urlApi + "/trips/today/",
@@ -119,13 +125,17 @@ async function getCoursesTaxi() {
 			channelCourseData.postMessage({ courses: data.data.courses, date: constdateNow })
 			channelMessages.postMessage({ messages: data.data.messages, date: constdateNow })
 			lastCoursesDatasReceive = Date.now()
+
+
 			if (dcHasProposition(data)) {
-				sendNotification("Nouvelles proposition", "Affichez les courses jaunes");
+				sendNotification("Nouvelles propositions de course", "Veuillez valider les courses à prendre");
 				channelHasNotification.postMessage({ hasProposition: true, date: constdateNow })
 			}
 			else{
 				channelHasNotification.postMessage({ hasProposition: false, date: constdateNow })
 			}
+
+			
 		}
 	}
 	catch (e) {

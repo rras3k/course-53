@@ -4,6 +4,9 @@ import { usePathname, useRouter } from "next/navigation"
 import { getPWADisplayMode, isPwaInstalled } from "@/lib/rrasb2k/app"
 import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import imgHome from "@/public/icon-192x192.png";
+
 
 
 export default function PwaInstall({ children }: { children: React.ReactNode }) {
@@ -29,11 +32,12 @@ export default function PwaInstall({ children }: { children: React.ReactNode }) 
   }
 
   useEffect(() => {
-    console.log("iciiiiiiiiii")
+    console.log("iciiiiiiiiii",process.env.NEXT_PUBLIC_APP_ONLY,isPwaInstalled())
     if (process.env.NEXT_PUBLIC_APP_ONLY === "true" && !isPwaInstalled()) {
+      console.log("installation")
       window.addEventListener('beforeinstallprompt', (e) => {
         // prevent the browser from displaying the default install dialog
-        //e.preventDefault()
+        e.preventDefault()
 
         // Stash the event so it can be triggered later when the user clicks the button
         // deferredEvent = e
@@ -52,12 +56,13 @@ export default function PwaInstall({ children }: { children: React.ReactNode }) 
   return (
     <>
       {isOnInstallation &&
-        <>
-          {<Button onClick={installAppClick} >Installation de l&apos;application Course 53 </Button>}
+        <div className="flex items-center justify-center flex-col">
+			    <Image className="" src={imgHome} alt="Home" />
+          {<Button className="block" onClick={installAppClick} >Cliquez pour installer</Button>}
           {/* {!installClick && <Button onClick={installAppClick} className={allreadyInstall ? " hidden" : ""}>Installation de l&apos;application Course 53 </Button>} */}
           {/* {installClick && <Button onClick={() => { router.push("/") }}>Continuer...</Button>} */}
           {/* <div className={allreadyInstall ? " " : " hidden"}>Lancer Course 53 depuis la liste de vos applications</div> */}
-        </>
+        </div>
       }
       {!isOnInstallation &&
         children

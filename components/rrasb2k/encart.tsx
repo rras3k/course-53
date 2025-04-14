@@ -40,7 +40,7 @@ const EncartContent = React.forwardRef<
 	<div
 		ref={ref}
 		className={cn(
-			"flex justify-center",
+			"flex justify-right",
 			className
 		)}
 		{...props}

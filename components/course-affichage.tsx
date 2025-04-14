@@ -105,10 +105,11 @@ export default function CourseAffichage({ filtreCourse, clickable, courses }) {
 									'bg-blue-200': course.course_status == Course_statut.Cloturee,
 									'bg-gray-200': course.course_status == Course_statut.Annule,
 									'bg-yellow-200': course.course_status == Course_statut.A_faire && (course.taxi_name == "" || course.taxi_name == null),
-									'mt-4': rgp_course_id_before != course.rgp_course_id,
 									'border-t-0 border-black border-solid': rgp_course_id_before == course.rgp_course_id,
+									'mt-4': rgp_course_id_before != course.rgp_course_id,
 								}
 							);
+							// 'mt-4': rgp_course_id_before != course.rgp_course_id,
 							rgp_course_id_before = course.rgp_course_id;
 							// cpt++;
 
@@ -138,12 +139,12 @@ export default function CourseAffichage({ filtreCourse, clickable, courses }) {
 										<div className="">
 											{course.client_nom}
 										</div>
-										<div className="">
+										{/* <div className="">
 											 : {course.rgp_course_id}
 										</div>
 										<div className="">
 											 : {course.course_id}
-										</div>
+										</div> */}
 									</div>
 								</div>
 							);

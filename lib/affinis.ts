@@ -113,10 +113,10 @@ export function getFiltreCourse(queryFiltre: string | null): string {
 }
 
 export function isPathCourseFiltreTaxi(path:string):boolean{
-	return (path === "/taxi/courses")
+	return (path === "/taxi/courses/")
 }
 export function isPathCourseFiltreAllTaxi(path:string):boolean{
-	return (path === "/admin/courses")
+	return (path === "/admin/courses/")
 }
 
 //  ROUTE
@@ -130,18 +130,19 @@ const route: { [key: string]: RouteInfo } = {};
 route[''] = {titre:'',profilId:null}
 route['/'] = {titre:'',profilId:null}
 
-route['/aide'] = {titre:'aide',profilId:null}
-route['/identification'] = {titre:'aide',profilId:null}
-route['/installation'] = {titre:'installation',profilId:null}
-route['/parametrage'] = {titre:'parametrage',profilId:null}
+route['/aide/'] = {titre:'aide',profilId:null}
+route['/identification/'] = {titre:'aide',profilId:null}
+route['/installation/'] = {titre:'installation',profilId:null}
+route['/parametrage/'] = {titre:'parametrage',profilId:null}
 
-route['/taxi/courses'] = {titre:'courses',profilId:[ProfilEnum.Taxi]}
-route['/taxi/course-filtre'] = {titre:'filtre',profilId:[ProfilEnum.Taxi]}
-route['/taxi/messages'] = {titre:'messages',profilId:[ProfilEnum.Taxi]}
+route['/taxi/courses/'] = {titre:'courses',profilId:[ProfilEnum.Taxi]}
+route['/taxi/course-filtre/'] = {titre:'filtre',profilId:[ProfilEnum.Taxi]}
+route['/taxi/messages/'] = {titre:'messages',profilId:[ProfilEnum.Taxi]}
 
 
 
 export const getTitle = (pathname: string) => {
+    console.log("getTitle ", pathname)
     try{
         return (route[pathname]).titre;
     }

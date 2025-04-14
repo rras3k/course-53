@@ -15,6 +15,13 @@ const ASSETS_TO_CACHE = [
 	"/icon-192x192.png",
 	"/icon-384x384.png",
 	"/icon-512x512.png",
+	"/aide",
+	"/parametrage",
+	"/taxi/courses",
+	"/taxi/course-filtre",
+	"/taxi/message",
+	"/identification",
+	"/click.mp3"
 ];
 
 /*
@@ -97,8 +104,8 @@ self.addEventListener('fetch', (event) => {
 	}
 });
 
-self.addEventListener('load', () => {
-});
+// self.addEventListener('load', () => {
+// });
 
 
 

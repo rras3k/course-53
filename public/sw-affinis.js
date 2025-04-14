@@ -1,6 +1,7 @@
-let cacheName = "CACHE_V_1.00"
+ let cacheName = "CACHE_V_1.00"
 let delaiApiGetCourse = 15000
 let token = ""
+let periodiqueEncours = false
 let profilId = ""
 let profilTaxi = "1"
 let profilAdmin = "4"

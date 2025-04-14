@@ -1,0 +1,216 @@
+// Import des variables de base
+importScripts("/sw-affinis.js");
+importScripts("/compat.js");
+
+let interval = null
+
+// Listener pour l'initialisation des variables pour le worker
+const channelInitVar = new BroadcastChannel('initvar')
+
+// Post d'un boolean indiquant si detection de proposition lors de la derniere reception de courses pour un taxi
+const channelHasNotification = new BroadcastChannel('sw-hasNotification');
+
+// Post d'un tableau JSON contenant la derniere reception de courses pour un taxi
+const channelCourseData = new BroadcastChannel('sw-courses-data');
+
+// Post d'un tableau JSON contenant la derniere reception des messages pour un taxi
+const channelMessages = new BroadcastChannel('sw-messages-data');
+
+// Post d'un tableau JSON contenant la derniere reception de courses de tous les taxis
+const channelAllCourseData = new BroadcastChannel('sw-all-courses-data');
+
+// Post d'un boolean indiquant qu'il faut supprimer toutes traces de la derniere session en dehors du web worker
+const channelToDeconnect = new BroadcastChannel('sw-to-deconnect');
+
+// Listener d'un boolean indiquant si il faut supprimer toute trace de la derniere session dans le web worker
+const channelToDeconnectToSW = new BroadcastChannel('deconnect');
+
+
+channelInitVar.addEventListener('message', event => {
+	console.log('Received initvar', event.data)
+	initVar(event.data)
+	console.log("ca marche token = ", token)
+	backProcess();
+});
+
+channelToDeconnectToSW.addEventListener('message', event => {
+	console.log('Received channelToDeconnectToSW', event.data)
+	identClear()
+	channelHasNotification.postMessage({ hasProposition: false, date: Date.now() })
+});
+
+
+function identClearAndPost() {
+	console.log(" ============== RESET AND POST===============")
+	identClear()
+	console.log("envoi message Deconnect")
+	channelToDeconnect.postMessage({ deconnect: true })
+}
+
+function identClear() {
+	console.log(" ============== RESET ===============")
+	profilId = ""
+	token = ""
+
+	// Suppression du cache: Appels API serveur
+	caches.delete(cacheName).then(() => {
+		// le cache est maintenant supprimé
+		console.log('app/identification/page.tsx > cacheName est supprimé', cacheName);
+	});
+	cacheName = ""
+
+
+	// Suppression IndexedDB 
+	// clear()
+	// Suppression local.storage
+	//localStorage.clear();
+	clearInterval(interval)
+}
+
+function backProcess() {
+	backProcessAction()
+	interval = setInterval(async () => {
+		console.log("interval",interval, token)
+		backProcessAction()
+	}, delaiApiGetCourse);
+	return () => clearInterval(interval)
+}
+
+function backProcessAction(){
+	if (token === "" || urlApi === "") {
+		// On supprime tout dans indexDB et cache pour être rediriger par un middleware vers identification
+		console.log("identClearAndPost backProcess 1")
+		identClearAndPost()
+	}
+	else {
+		// chargement API des courses d'un taxi
+		if (isProfilTaxi()) getCoursesTaxi()
+		else if (isProfilAdmin()) getCoursesAllTaxis()
+		else {
+			console.log("identClearAndPost backProcess 2", profilId)
+			identClearAndPost()
+		}
+	}
+}
+
+async function getCoursesTaxi() {
+	console.log(">getCoursesTaxi",token)
+	try {
+		const response = await fetch(
+			urlApi + "/trips/today/",
+			{
+				headers: {
+					'Authorization': `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				method: 'GET'
+			}
+		);
+		const data = await response.json();
+		constdateNow = Date.now()
+		
+		if (!data?.retour) { // la requete échoue par mauvaise identification
+			channelToDeconnect.postMessage({ deconnect: true })
+			console.log("identClearAndPost getCoursesTaxi")
+			identClearAndPost() // On supprime tout dans indexDB et cache pour être rediriger par un middleware vers identification
+			token = ""
+		}
+		else {
+			channelCourseData.postMessage({ courses: data.data.courses, date: constdateNow })
+			channelMessages.postMessage({ messages: data.data.messages, date: constdateNow })
+			lastCoursesDatasReceive = Date.now()
+			if (dcHasProposition(data)) {
+				sendNotification("Nouvelles proposition", "Affichez les courses jaunes");
+				channelHasNotification.postMessage({ hasProposition: true, date: constdateNow })
+			}
+			else{
+				channelHasNotification.postMessage({ hasProposition: false, date: constdateNow })
+			}
+		}
+	}
+	catch (e) {
+		console.error("ERREUR /trips/today/", e);
+	}
+}
+
+async function getCoursesAllTaxis() {
+	console.log(" ======================== ADMN =============================")
+	try {
+		const response = await fetch(
+			urlApi + "/trips/today-all",
+			{
+				headers: {
+					'Authorization': `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				method: 'GET'
+			}
+		);
+		const data = await response.json();
+		constdateNow = Date.now()
+		if (data?.message) { // la requete échoue par mauvaise identification
+			channelToDeconnect.postMessage({ deconnect: true })
+			identClearAndPost() // On supprime tout dans indexDB et cache pour être rediriger par un middleware vers identification
+			token = ""
+		}
+		else {
+			channelAllCourseData.postMessage({ datas: data, date: constdateNow })
+		}
+	}
+	catch (e) {
+		console.error("ERREUR /trips/today-all", e);
+	}
+}
+
+const dcHasProposition = (datas) => {
+	let hasProposition = false;
+	datas.data.courses.map((course) => {
+		hasProposition = hasProposition || (course.course_status == "1" && (course.taxi_name == "" || course.taxi_name == null));
+	});
+	return hasProposition;
+}
+
+const sendNotification = async (title, text) => {
+	get("stateDisplayNotification")
+		.then((value) => {
+			// console.log("stateDisplayNotification value = ", value)
+			if (value) {
+				if (Notification.permission === 'granted') {
+					showNotification(title, text);
+				}
+				else {
+					if (Notification.permission !== 'denied') {
+						Notification.requestPermission()
+							.then((permission) => {
+								if (permission === 'granted') {
+									showNotification(title, text);
+								}
+							})
+					}
+				}
+			}
+		})
+		.catch((e) => {
+			console.log("error get(stateDisplayNotification)", e)
+			set("stateDisplayNotification", true)
+
+		})
+};
+
+const showNotification = async (title, text) => {
+	if (title && text) {
+		const payload = {
+			body: String(text),
+			icon: "/icons/icon-192x192.png",
+			requireInteraction: true
+
+		};
+		if ('showNotification' in registration) {
+			registration.showNotification(String(title), payload);
+		}
+		else {
+			new Notification(String(title), payload);
+		}
+	}
+};
+

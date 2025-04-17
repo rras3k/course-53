@@ -1,6 +1,6 @@
 // importScripts("/compat.js");
 importScripts("/sw-artaxi.js");
-const appVerison="1.0.1"
+// const appVerison="1.0.1"
 
 console.log("cachename  = ", cacheName)
 
@@ -15,38 +15,15 @@ const ASSETS_TO_CACHE = [
 	"/icon-192x192.png",
 	"/icon-384x384.png",
 	"/icon-512x512.png",
-	"/aide",
-	"/parametrage",
-	"/taxi/courses",
-	"/taxi/course-filtre",
-	"/taxi/message",
-	"/identification",
-	"/click.mp3"
+
 ];
-
-/*
-Copy to Clipboard
-const addResourcesToCache = async (resources) => {
-  const cache = await caches.open("v1");
-  await cache.addAll(resources);
-};
-
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-	addResourcesToCache([
-	  "/",
-	  "/index.html",
-	  "/style.css",
-	  "/app.js",
-	  "/image-list.js",
-	  "/star-wars-logo.jpg",
-	  "/gallery/bountyHunters.jpg",
-	  "/gallery/myLittleVader.jpg",
-	  "/gallery/snowTroopers.jpg",
-	]),
-  );
-});
-*/
+// "/aide",
+// "/parametrage",
+// "/taxi/courses",
+// "/taxi/course-filtre",
+// "/taxi/message",
+// "/identification",
+//"/click.mp3"
 
 // Install the service worker and cache assets
 self.addEventListener('install', (event) => {
@@ -104,14 +81,5 @@ self.addEventListener('fetch', (event) => {
 	}
 });
 
-// self.addEventListener('load', () => {
-// });
 
 
-
-
-/*
-vedayex428@gufutu.com
-Wqa12zsx
-https://tk14.info6.lnkml.com/r/?id=h554970bb,cc766bf,187167&p1=www.disonsdemain.fr/authent/mat.php?ibl=1430876347&enc=179478E4538FE7D19429AA5D6E08EAA64A7FC0F9ECDC1C010CB5DFB7751FB820430C538293A77083844C180DFEFAD7093DCC747C769CC1DA8CD852004272C5B744B0274D8EB29AE7D6D119D9727648F5&co=4001011&target=/home/index.php
-*/

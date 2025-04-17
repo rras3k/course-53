@@ -3,6 +3,8 @@ import {
 	AlertDialogContent,
 	AlertDialogDescription,
 	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
 } from "@/components/ui/alert-dialog"
 
 import { CircleX } from 'lucide-react';
@@ -23,10 +25,13 @@ export default function MenuApp({ openMenu, setOpenMenu, setIsShowDeconnexion, p
 	}
 	return (
 		<>
-				<AlertDialog open={openMenu} onOpenChange={setOpenMenu}>
-					<AlertDialogContent>
-						<AlertDialogDescription>
+			<AlertDialog open={openMenu} onOpenChange={setOpenMenu}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
 							<CircleX onClick={() => { setOpenMenu(false) }} size={42} />
+						</AlertDialogTitle>
+						{/* <AlertDialogDescription> */}
 							<div className="flex flex-col h-full">
 								{(pathName != "/taxi/courses") && <div onClick={() => goAndClose('/taxi/courses')} className={"h-20 my-2 flex place-items-center justify-start text-center  mx-5   border rounded-xl bg-blue-300 hover:bg-blue-400    text-2xl text-sky-950 "}>
 									<div className="flex-auto">
@@ -59,14 +64,32 @@ export default function MenuApp({ openMenu, setOpenMenu, setIsShowDeconnexion, p
 								</div>}
 
 							</div>
-						</AlertDialogDescription>
-						<AlertDialogFooter>
-							Version <Version />
-						</AlertDialogFooter>
+						{/* </AlertDialogDescription> */}
+					</AlertDialogHeader>
 
-					</AlertDialogContent>
-				</AlertDialog>
+					<AlertDialogFooter>
+						Version <Version />
+					</AlertDialogFooter>
+
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	)
 }
 
+// <AlertDialog>
+
+// 	<AlertDialogContent>
+// 		<AlertDialogHeader>
+// 			<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+// 			<AlertDialogDescription>
+// 				This action cannot be undone. This will permanently delete your
+// 				account and remove your data from our servers.
+// 			</AlertDialogDescription>
+// 		</AlertDialogHeader>
+// 		<AlertDialogFooter>
+// 			<AlertDialogCancel>Cancel</AlertDialogCancel>
+// 			<AlertDialogAction>Continue</AlertDialogAction>
+// 		</AlertDialogFooter>
+// 	</AlertDialogContent>
+// </AlertDialog>

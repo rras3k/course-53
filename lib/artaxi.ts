@@ -1,21 +1,29 @@
 'use client'
 
 import { tokenName, cacheName, Ident } from "./affinis";
+import {get,set, clear} from "idb-keyval"
+
+export function getVersion(){
+	return "1.0.28"
+}
 
 export function identSet(identData: Ident): boolean {
 
 	//indexDB pour le service worker
-	// set(token, identData.token);
-	// set("profilId", identData.profilId);
-	// set("nom", identData.nom);
-	// set("prenom", identData.prenom);
+	set("token", identData.token);
+	set("profilId", identData.profilId);
+	set("lastname", identData.nom);
+	set("firstname", identData.prenom);
+	set("urlApi", process.env.NEXT_PUBLIC_API_URL);
 
 	// Local storage pour le reste de l'application
 	localStorage.setItem(tokenName, identData.token);
 	localStorage.setItem("profilId", identData.profilId);
 	localStorage.setItem("lastname", identData.nom);
 	localStorage.setItem("firstname", identData.prenom);
+
 	identSendinitVarWorker(identData.token, identData.profilId)
+
 	return true;
 }
 
@@ -34,10 +42,11 @@ function identSendinitVarWorker(token: string, profilId: string) {
 
 }
 
-export async function identClear() {
+export async function identClear(isCache:boolean = false) {
 	// reset var
 	// Suppression du cache: Appels API serveur
-	if (cacheName) {
+// export async function identClear(isCache = false) {
+	if ( isCache && cacheName) {
 		window.caches.open(cacheName).then((cache) => {
 			cache.keys().then((keys) => {
 				keys.forEach((request) => {
@@ -48,12 +57,12 @@ export async function identClear() {
 	}
 
 	// Suppression dans IndexedDB 
-	//clear()
+	clear()
 
 	// Suppression local.storage
 	localStorage.clear();
 
-	// Post d'un boolean indiquant si il faut supprimer toute trace de la derniere session dans le web worker
+	// Post d'un boolean indiquant qu'il faut supprimer toute trace de la derniere session dans le web worker
 	const channelToDeconnectToSW = new BroadcastChannel('deconnect');
 	channelToDeconnectToSW.postMessage({ deconnect: true })
 	channelToDeconnectToSW.close()
@@ -69,8 +78,6 @@ export function identGetProfilId() {
 	return localStorage.getItem("profilId")
 }
 
-export function getVersion(){
-	return "1.0.15"
-}
+
 
 

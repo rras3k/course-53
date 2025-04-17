@@ -16,7 +16,7 @@ export default function LayoutRoute({ children }: { children: React.ReactNode })
 
 		const channeConnect = new BroadcastChannel('sw-to-deconnect');
 		channeConnect.addEventListener('message', event => {
-			console.info('Received PROVIDER sw-to-deconnect', event.data,event?.data?.deconnect);
+			console.info('Received PROVIDER sw-to-deconnect', event.data,event?.data?.deconnect,pahtName);
 			if (event?.data?.deconnect && pahtName !== "/identification"){
 				console.log("redirect /identification")
 				router.push('/identification')

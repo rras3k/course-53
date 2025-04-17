@@ -2,6 +2,7 @@
 importScripts("/sw-affinis.js");
 importScripts("/compat.js");
 
+
 let interval = null
 
 // Listener pour l'initialisation des variables pour le worker
@@ -53,54 +54,68 @@ function identClear() {
 	token = ""
 
 	// Suppression du cache: Appels API serveur
-	caches.delete(cacheName).then(() => {
-		// le cache est maintenant supprimé
-		console.log('app/identification/page.tsx > cacheName est supprimé', cacheName);
-	});
-	cacheName = ""
+	// caches.delete(cacheName).then(() => {
+	// 	// le cache est maintenant supprimé
+	// 	console.log('app/identification/page.tsx > cacheName est supprimé', cacheName);
+	// });
+	// cacheName = ""
 
 
 	// Suppression IndexedDB 
-	// clear()
+	clear()
+
 	// Suppression local.storage
-	//localStorage.clear();
+	// localStorage.clear();
+
+	// Supprime le processus de bouclage
 	clearInterval(interval)
 }
 
-if (!periodiqueEncours){
-	periodiqueEncours=true
-	backProcess()
-}
+// if (!periodiqueEncours) {
+// 	periodiqueEncours = true
+// 	backProcess()
+// }
 
 function backProcess() {
 	backProcessAction()
 	interval = setInterval(async () => {
-		console.log("interval",interval, token)
+		console.log("interval", interval, token, version)
 		backProcessAction()
 	}, delaiApiGetCourse);
 	return () => clearInterval(interval)
 }
 
-function backProcessAction(){
-	console.log("backProcessAction", token )
-	if (token === "" || urlApi === "") {
-		// On supprime tout dans indexDB et cache pour être rediriger par un middleware vers identification
-		console.log("identClearAndPost backProcess 1")
-		identClearAndPost()
-	}
-	else {
-		// chargement API des courses d'un taxi
-		if (isProfilTaxi()) getCoursesTaxi()
-	//	else if (isProfilAdmin()) getCoursesAllTaxis()
-		else {
-			console.log("identClearAndPost backProcess 2", profilId)
-			identClearAndPost()
-		}
-	}
+function backProcessAction() {
+	console.log("backProcessAction", token)
+	getCoursesTaxi()
+}
+
+async function getTokenUrlApi() {
+	// let token = ""
+	// let urlApi = ""
+	token = await get("token")
+	urlApi = await get("urlApi")
+	// console.log(" getTokenUrlApi => token, urlApi", token, urlApi)
+	// return [token, urlApi]
+}
+
+function isVarOkForFetch() {
+	return !(token === "" || urlApi === "" || token === undefined || urlApi === undefined)
 }
 
 async function getCoursesTaxi() {
-	console.log("> getCoursesTaxi",token)
+
+	console.log("> getCoursesTaxi", token, urlApi)
+	if (!isVarOkForFetch()) {
+		console.log("pas ok")
+		// [token, urlApi] = getTokenUrlApi()
+		getTokenUrlApi()
+	}
+	if (!isVarOkForFetch()) {
+		console.log("getCoursesTaxi token ou urlApi null", profilId)
+		identClearAndPost()
+	}
+	if (!isVarOkForFetch()) return ""
 	try {
 		const response = await fetch(
 			urlApi + "/trips/today/",
@@ -114,12 +129,12 @@ async function getCoursesTaxi() {
 		);
 		const data = await response.json();
 		constdateNow = Date.now()
-		
+
 		if (!data?.retour) { // la requete échoue par mauvaise identification
-			channelToDeconnect.postMessage({ deconnect: true })
+			// channelToDeconnect.postMessage({ deconnect: true })
 			console.log("identClearAndPost getCoursesTaxi")
 			identClearAndPost() // On supprime tout dans indexDB et cache pour être rediriger par un middleware vers identification
-			token = ""
+			// token = ""
 		}
 		else {
 			channelCourseData.postMessage({ courses: data.data.courses, date: constdateNow })
@@ -131,11 +146,11 @@ async function getCoursesTaxi() {
 				sendNotification("Nouvelles propositions de course", "Veuillez valider les courses à prendre");
 				channelHasNotification.postMessage({ hasProposition: true, date: constdateNow })
 			}
-			else{
+			else {
 				channelHasNotification.postMessage({ hasProposition: false, date: constdateNow })
 			}
 
-			
+
 		}
 	}
 	catch (e) {
@@ -143,34 +158,34 @@ async function getCoursesTaxi() {
 	}
 }
 
-async function getCoursesAllTaxis() {
-	console.log(" ======================== ADMN =============================")
-	try {
-		const response = await fetch(
-			urlApi + "/trips/today-all",
-			{
-				headers: {
-					'Authorization': `Bearer ${token}`,
-					"Content-Type": "application/json",
-				},
-				method: 'GET'
-			}
-		);
-		const data = await response.json();
-		constdateNow = Date.now()
-		if (data?.message) { // la requete échoue par mauvaise identification
-			channelToDeconnect.postMessage({ deconnect: true })
-			identClearAndPost() // On supprime tout dans indexDB et cache pour être rediriger par un middleware vers identification
-			token = ""
-		}
-		else {
-			channelAllCourseData.postMessage({ datas: data, date: constdateNow })
-		}
-	}
-	catch (e) {
-		console.error("ERREUR /trips/today-all", e);
-	}
-}
+// async function getCoursesAllTaxis() {
+// 	console.log(" ======================== ADMN =============================")
+// 	try {
+// 		const response = await fetch(
+// 			urlApi + "/trips/today-all",
+// 			{
+// 				headers: {
+// 					'Authorization': `Bearer ${token}`,
+// 					"Content-Type": "application/json",
+// 				},
+// 				method: 'GET'
+// 			}
+// 		);
+// 		const data = await response.json();
+// 		constdateNow = Date.now()
+// 		if (data?.message) { // la requete échoue par mauvaise identification
+// 			channelToDeconnect.postMessage({ deconnect: true })
+// 			identClearAndPost() // On supprime tout dans indexDB et cache pour être rediriger par un middleware vers identification
+// 			token = ""
+// 		}
+// 		else {
+// 			channelAllCourseData.postMessage({ datas: data, date: constdateNow })
+// 		}
+// 	}
+// 	catch (e) {
+// 		console.error("ERREUR /trips/today-all", e);
+// 	}
+// }
 
 const dcHasProposition = (datas) => {
 	let hasProposition = false;
@@ -224,3 +239,4 @@ const showNotification = async (title, text) => {
 	}
 };
 
+backProcess()

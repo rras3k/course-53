@@ -27,12 +27,12 @@ import { getInputStringValue } from "@/lib/rrasb2k/domUtils"
 
 export default function Identification() {
 
-	// identClear() // suprime toutes données dans les caches et indexDb de l'identification
+	identClear() // suprime toutes données dans les caches et indexDb de l'identification
 	
 	//setUrlApiDb() // Positionne l'url des appels API dans indexDb pour le webworker
 
 	// const dejaFait = useRef(false)
-
+console.log("=============================DANS IDENTIFICATION==================================")
 	const router = useRouter();
 	const [isErrorMsg, setIsErrorMsg] = useState(false);
 	// const [label, setLabel] = useState(1);

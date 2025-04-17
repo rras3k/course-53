@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import imgHome from "@/public/icon-192x192.png";
+import {getVersion} from "@/lib/artaxi"
 
 
 
@@ -58,7 +59,7 @@ export default function PwaInstall({ children }: { children: React.ReactNode }) 
       {isOnInstallation &&
         <div className="flex items-center justify-center flex-col">
 			    <Image className="" src={imgHome} alt="Home" />
-          {<Button className="block" onClick={installAppClick} >Cliquez pour installer</Button>}
+          {<Button className="block" onClick={installAppClick} >Cliquez pour installer Course 53 ({getVersion()})</Button>}
           {/* {!installClick && <Button onClick={installAppClick} className={allreadyInstall ? " hidden" : ""}>Installation de l&apos;application Course 53 </Button>} */}
           {/* {installClick && <Button onClick={() => { router.push("/") }}>Continuer...</Button>} */}
           {/* <div className={allreadyInstall ? " " : " hidden"}>Lancer Course 53 depuis la liste de vos applications</div> */}

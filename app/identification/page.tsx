@@ -1,7 +1,7 @@
 "use client"
 
 
-// import { useEffect } from "react"
+import { useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { useRouter } from "next/navigation"
 // import { set } from 'idb-keyval';
 import { getInputStringValue } from "@/lib/rrasb2k/domUtils"
+import Update from "@/components/update"
 
 
 // const setUrlApiDb = () => {
@@ -27,26 +28,15 @@ import { getInputStringValue } from "@/lib/rrasb2k/domUtils"
 
 export default function Identification() {
 
-	identClear() // suprime toutes données dans les caches et indexDb de l'identification
-	
+	// identClear() // suprime toutes données dans les caches et indexDb de l'identification
 	//setUrlApiDb() // Positionne l'url des appels API dans indexDb pour le webworker
-
 	// const dejaFait = useRef(false)
-console.log("=============================DANS IDENTIFICATION==================================")
+
+	console.log("=============================DANS IDENTIFICATION==================================")
 	const router = useRouter();
 	const [isErrorMsg, setIsErrorMsg] = useState(false);
-	// const [label, setLabel] = useState(1);
-
-	// if (!dejaFait.current) {
-	// 	dejaFait.current = true
-
-	// 	const channeConnect = new BroadcastChannel('sw-to-deconnect');
-	// 	channeConnect.addEventListener('message', event => {
-	// 		console.info('Received PROVIDER sw-to-deconnect', event.data);
-	// 		if (event?.data?.connect) router.push('/identification')
-	// 	});
-	// }
-
+	const [isModeIdentification, setIsModeIdentification] = useState(true);
+	const channelToPong = new BroadcastChannel('pong');
 
 	const submit = () => {
 		const login = getInputStringValue("login")
@@ -66,10 +56,24 @@ console.log("=============================DANS IDENTIFICATION===================
 		}
 	}
 
+	channelToPong.addEventListener('message', event => {
+		channelToPong.close()
+		console.log('from identfication Received pongdepuis identification, webwoker actif')
+		setIsModeIdentification(false)
+	});
+
+	function clickButtonCloseWebWorker() {
+		const channelCloseWebWorker = new BroadcastChannel('close-webworker');
+		channelCloseWebWorker.postMessage({ close: true })
+		channelCloseWebWorker.close()
+		console.log("envoi au webworker l'ordre d'arreter")
+
+	}
+
 	async function askIdent(login: string, mdp: string): Promise<boolean> {
 		try {
-			console.log("askIdent ", login, mdp,process.env.NEXT_PUBLIC_API_URL)
-			console.log("process.env ",process.env.NEXT_PUBLIC_DELAI_API_COURSE)
+			console.log("askIdent ", login, mdp, process.env.NEXT_PUBLIC_API_URL)
+			console.log("process.env ", process.env.NEXT_PUBLIC_DELAI_API_COURSE)
 			const data = await fetch(
 				process.env.NEXT_PUBLIC_API_URL + '/identification'
 				, {
@@ -94,42 +98,54 @@ console.log("=============================DANS IDENTIFICATION===================
 		return false;
 	}
 
+	useEffect(() => {
+		const channelToPing = new BroadcastChannel('ping');
+		channelToPing.postMessage({ isAlive: true }) // on demande au webWorker si il est toujours en activité
+		channelToPing.close()
+	})
 
-	// useEffect(() => {
 
-	// },)
+
+
 
 	return (
 		<>
-			<Card className="w-[340px] mx-auto my-10">
-				<CardHeader>
-					<CardTitle>Identification Course 53</CardTitle>
-					<CardDescription>Saisir vos identifiants</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<form>
-						<div className="grid w-full items-center gap-4">
-							<div className="flex flex-col space-y-1.5">
-								<Label htmlFor="name">Login</Label>
-								<Input id="login" type="text" placeholder="Saisissez votre login" defaultValue="artaxi" />
+			{/* <Update> */}
+			{isModeIdentification &&
+				<Card className="w-[340px] mx-auto my-10">
+					<CardHeader>
+						<CardTitle>Identification Course 53</CardTitle>
+						<CardDescription>Saisir vos identifiants</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<form>
+							<div className="grid w-full items-center gap-4">
+								<div className="flex flex-col space-y-1.5">
+									<Label htmlFor="name">Login</Label>
+									<Input id="login" type="text" placeholder="Saisissez votre login" defaultValue="artaxi" />
+								</div>
+								<div className="flex flex-col space-y-1.5">
+									<Label htmlFor="mdp">Mot de passe</Label>
+									<Input id="mdp" placeholder="Saisissez votre mot de passe" defaultValue="6808" />
+								</div>
 							</div>
-							<div className="flex flex-col space-y-1.5">
-								<Label htmlFor="mdp">Mot de passe</Label>
-								<Input id="mdp" placeholder="Saisissez votre mot de passe" defaultValue="6808" />
+						</form>
+						{isErrorMsg &&
+							<div className="text-red-700 font-bold my-3">
+								Saisie incorrect, veuillez recommencer
 							</div>
-						</div>
-					</form>
-					{isErrorMsg &&
-						<div className="text-red-700 font-bold my-3">
-							Saisie incorrect, veuillez recommencer
-						</div>
-					}
-				</CardContent>
-				<CardFooter className="flex justify-between">
-					{/* <Button variant="outline">Cancel</Button> */}
-					<Button onClick={submit} className="bg-primary w-20 mx-auto">Ok</Button>
-				</CardFooter>
-			</Card>
+						}
+					</CardContent>
+					<CardFooter className="flex justify-between">
+						{/* <Button variant="outline">Cancel</Button> */}
+						<Button onClick={submit} className="bg-primary w-20 mx-auto">Ok</Button>
+					</CardFooter>
+				</Card>
+			}
+			{!isModeIdentification &&
+				<Button className="" onClick={clickButtonCloseWebWorker}>Quitter l'application</Button>
+			}
+			{/* </Update> */}
 		</>
 	)
 }

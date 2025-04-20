@@ -26,6 +26,15 @@ const channelToDeconnect = new BroadcastChannel('sw-to-deconnect');
 // Listener d'un boolean indiquant si il faut supprimer toute trace de la derniere session dans le web worker
 const channelToDeconnectToSW = new BroadcastChannel('deconnect');
 
+// Listener d'un boolean indiquant si il faut supprimer toute tra
+// ce de la derniere session dans le web worker
+const channelToPing = new BroadcastChannel('ping');
+const channelToPong = new BroadcastChannel('pong');
+
+const channelCloseWebWorker = new BroadcastChannel('close-webworker');
+
+
+console.log("WS> FIRTS SW-ARTAXI")
 
 channelInitVar.addEventListener('message', event => {
 	console.log('Received initvar', event.data)
@@ -34,12 +43,36 @@ channelInitVar.addEventListener('message', event => {
 	backProcess();
 });
 
+channelCloseWebWorker.addEventListener('message', event => {
+	console.log('WS> Received ordre d arreter ', event.data)
+
+	if ("serviceWorker" in navigator) {
+		navigator.serviceWorker
+		  .register("/sw.js", { scope: "/" })
+		  .then((registration) => {
+			// registration worked
+			console.log("Registration succeeded.");
+			registration.unregister().then((boolean) => {
+			  // if boolean = true, unregister is successful
+			});
+		  })
+		  .catch((error) => {
+			// registration failed
+			console.error(`Registration failed with ${error}`);
+		  });
+	  }
+});
+
+channelToPing.addEventListener('message', event => {
+	console.log('Received ping', event.data)
+	channelToPong.postMessage({ alive: true })
+});
+
 channelToDeconnectToSW.addEventListener('message', event => {
 	console.log('Received channelToDeconnectToSW', event.data)
 	identClear()
 	channelHasNotification.postMessage({ hasProposition: false, date: Date.now() })
 });
-
 
 function identClearAndPost() {
 	console.log(" ============== RESET AND POST===============")
@@ -49,7 +82,7 @@ function identClearAndPost() {
 }
 
 function identClear() {
-	console.log(" ============== RESET ===============")
+	console.log(" ============== RESET (identClear) ===============")
 	profilId = ""
 	token = ""
 
@@ -79,14 +112,14 @@ function identClear() {
 function backProcess() {
 	backProcessAction()
 	interval = setInterval(async () => {
-		console.log("interval", interval, token, version)
+		console.log("WS> FIRTS SW-ARTAXI", interval, token, version)
 		backProcessAction()
 	}, delaiApiGetCourse);
 	return () => clearInterval(interval)
 }
 
 function backProcessAction() {
-	console.log("backProcessAction", token)
+	console.log("WS> backProcessAction", token)
 	getCoursesTaxi()
 }
 
@@ -107,12 +140,12 @@ async function getCoursesTaxi() {
 
 	console.log("> getCoursesTaxi", token, urlApi)
 	if (!isVarOkForFetch()) {
-		console.log("pas ok")
+		console.log("WS> pas ok")
 		// [token, urlApi] = getTokenUrlApi()
 		getTokenUrlApi()
 	}
 	if (!isVarOkForFetch()) {
-		console.log("getCoursesTaxi token ou urlApi null", profilId)
+		console.log("WS> getCoursesTaxi token ou urlApi null", profilId)
 		identClearAndPost()
 	}
 	if (!isVarOkForFetch()) return ""
@@ -132,7 +165,7 @@ async function getCoursesTaxi() {
 
 		if (!data?.retour) { // la requete échoue par mauvaise identification
 			// channelToDeconnect.postMessage({ deconnect: true })
-			console.log("identClearAndPost getCoursesTaxi")
+			console.log("WS> identClearAndPost getCoursesTaxi")
 			identClearAndPost() // On supprime tout dans indexDB et cache pour être rediriger par un middleware vers identification
 			// token = ""
 		}
@@ -154,7 +187,7 @@ async function getCoursesTaxi() {
 		}
 	}
 	catch (e) {
-		console.error("ERREUR /trips/today/", e);
+		console.error("WS> ERREUR /trips/today/", e);
 	}
 }
 
@@ -216,7 +249,7 @@ const sendNotification = async (title, text) => {
 			}
 		})
 		.catch((e) => {
-			console.log("error get(stateDisplayNotification)", e)
+			console.log("WS> error get(stateDisplayNotification)", e)
 			set("stateDisplayNotification", true)
 
 		})

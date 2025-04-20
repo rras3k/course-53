@@ -2,7 +2,7 @@
 importScripts("/sw-artaxi.js");
 // const appVerison="1.0.1"
 
-console.log("cachename  = ", cacheName)
+console.log("WS>  cachename  = ", cacheName)
 
 // Liste des fichiers à mettre en cache lors de la création du worker
 const ASSETS_TO_CACHE = [
@@ -24,37 +24,40 @@ const ASSETS_TO_CACHE = [
 // "/taxi/message",
 // "/identification",
 //"/click.mp3"
+self.addEventListener('load', (event) => {
+	console.log("WS>  =======================================WEBWORKER LOAD ", cacheName)
+})
 
 // Install the service worker and cache assets
 self.addEventListener('install', (event) => {
+	console.log("WS>  =======================================WEBWORKER INSTALL ", cacheName)
+
 	try {
+		event.waitUntil(
+			clearCacheExcept(cacheName)
+		)
 		event.waitUntil(
 			caches.open(cacheName).then((cache) => {
 				try {
 					cache.addAll(ASSETS_TO_CACHE)
 				}
 				catch (e) {
-					console.log("erreur addAll : ", e)
+					console.log("WS>  erreur addAll : ", e)
 				}
 			}
 			));
 	}
 	catch (e) {
-		console.log("erreur open : ", e)
+		console.log("WS>  erreur open : ", e)
 	}
 
 });
 
 // Activate the service worker and clear old caches
 self.addEventListener('activate', (event) => {
+	console.log("WS>  =======================================WEBWORKER ACTIVATE : ",cacheName)
 	event.waitUntil(
-		caches.keys().then((cacheNames) => {
-			return Promise.all(
-				cacheNames
-					.filter((cacheName) => cacheName !== cacheName)
-					.map((cacheName) => caches.delete(cacheName))
-			);
-		})
+		clearCacheExcept(cacheName)
 	);
 });
 
@@ -81,5 +84,16 @@ self.addEventListener('fetch', (event) => {
 	}
 });
 
-
+function clearCacheExcept(cacheName){
+	caches.keys().then((cacheNames) => {
+		return Promise.all(
+			cacheNames
+				.filter((cacheNameInd) => cacheNameInd !== cacheName)
+				.map((cacheNameInd) => {
+					console.log("WS>  cacheNameInd,cacheName",cacheNameInd,cacheName)
+					caches.delete(cacheNameInd)
+				})
+		);
+	})
+}
 

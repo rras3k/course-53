@@ -4,7 +4,7 @@ import { tokenName, cacheName, Ident } from "./affinis";
 import {get,set, clear} from "idb-keyval"
 
 export function getVersion(){
-	return "1.0.28"
+	return "1.0.54" 
 }
 
 export function identSet(identData: Ident): boolean {

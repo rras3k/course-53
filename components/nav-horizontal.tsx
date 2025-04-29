@@ -84,13 +84,18 @@ export function NavHor() {
 					{/* <div className="md:hidden flex content-center"> */}
 
 					<div className="flex content-center mx-auto md:w-[768px]">
+						{/* Logo */}
 						<Image className={twMerge(iconHome_className)} src={imgHome} alt="Home" />
+						
+						{/* <span>{process.env.NEXT_PUBLIC_TEST}</span> */}
+						{/* Titre */}
 						<div className="flex-auto flex items-center justify-center">
 							<div className=" text-lg content-center text-center font-bold text-white uppercase">
 								{title}
 							</div>
 						</div>
 
+						{/* Filtre courses */}
 						{showFiltreTaxi &&
 							<div onClick={() => router.push('/taxi/course-filtre')} className={` ${filtreCourseColor}  mx-2 w-10 flex-none  border rounded-md h-10 content-center my-auto  border-0`} >
 								<Filter strokeWidth={1} className={` ${filtreCourseFillColor} stroke-sky-700 mx-auto`} size={32} />

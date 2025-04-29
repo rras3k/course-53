@@ -1,4 +1,4 @@
-let version = "1.0.54"
+let version = "1.0.73"
 let cacheName = "CACHE_V_"+version
 let delaiApiGetCourse = 15000 
 let token = ""

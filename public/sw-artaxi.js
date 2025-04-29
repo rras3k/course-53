@@ -28,10 +28,10 @@ const channelToDeconnectToSW = new BroadcastChannel('deconnect');
 
 // Listener d'un boolean indiquant si il faut supprimer toute tra
 // ce de la derniere session dans le web worker
-const channelToPing = new BroadcastChannel('ping');
-const channelToPong = new BroadcastChannel('pong');
+// const channelToPing = new BroadcastChannel('ping');
+// const channelToPong = new BroadcastChannel('pong');
 
-const channelCloseWebWorker = new BroadcastChannel('close-webworker');
+// const channelCloseWebWorker = new BroadcastChannel('close-webworker');
 
 
 console.log("WS> FIRTS SW-ARTAXI")
@@ -43,35 +43,38 @@ channelInitVar.addEventListener('message', event => {
 	backProcess();
 });
 
-channelCloseWebWorker.addEventListener('message', event => {
-	console.log('WS> Received ordre d arreter ', event.data)
+// channelCloseWebWorker.addEventListener('message', event => {
+// 	console.log('WS> Received ordre d arreter ', event.data)
 
-	if ("serviceWorker" in navigator) {
-		navigator.serviceWorker
-		  .register("/sw.js", { scope: "/" })
-		  .then((registration) => {
-			// registration worked
-			console.log("Registration succeeded.");
-			registration.unregister().then((boolean) => {
-			  // if boolean = true, unregister is successful
-			});
-		  })
-		  .catch((error) => {
-			// registration failed
-			console.error(`Registration failed with ${error}`);
-		  });
-	  }
-});
+	
 
-channelToPing.addEventListener('message', event => {
-	console.log('Received ping', event.data)
-	channelToPong.postMessage({ alive: true })
-});
+// 	// if ("serviceWorker" in navigator) {
+// 	// 	console.log("close 1")
+// 	// 	navigator.serviceWorker
+// 	// 	  .register("/sw.js", { scope: "/" })
+// 	// 	  .then((registration) => {
+// 	// 		// registration worked
+// 	// 		console.log("Registration terminate.");
+// 	// 		registration.terminate()
+// 	// 		// registration.unregister().then((boolean) => {
+// 	// 		// });
+// 	// 	  })
+// 	// 	  .catch((error) => {
+// 	// 		// registration failed
+// 	// 		console.error(`Registration failed with ${error}`);
+// 	// 	  });
+// 	//   }
+// });
+
+// channelToPing.addEventListener('message', event => {
+// 	console.log('Received ping', event.data)
+// 	channelToPong.postMessage({ alive: true })
+// });
 
 channelToDeconnectToSW.addEventListener('message', event => {
 	console.log('Received channelToDeconnectToSW', event.data)
 	identClear()
-	channelHasNotification.postMessage({ hasProposition: false, date: Date.now() })
+	//channelHasNotification.postMessage({ hasProposition: false, date: Date.now() })
 });
 
 function identClearAndPost() {
@@ -148,6 +151,8 @@ async function getCoursesTaxi() {
 		console.log("WS> getCoursesTaxi token ou urlApi null", profilId)
 		identClearAndPost()
 	}
+
+	//api.artaxi-laval.chantier.algozzy.ovh/trips/today/
 	if (!isVarOkForFetch()) return ""
 	try {
 		const response = await fetch(
@@ -176,12 +181,13 @@ async function getCoursesTaxi() {
 
 
 			if (dcHasProposition(data)) {
+				console.log("show notification")
 				sendNotification("Nouvelles propositions de course", "Veuillez valider les courses à prendre");
 				channelHasNotification.postMessage({ hasProposition: true, date: constdateNow })
 			}
-			else {
-				channelHasNotification.postMessage({ hasProposition: false, date: constdateNow })
-			}
+			// else {
+			// 	channelHasNotification.postMessage({ hasProposition: false, date: constdateNow })
+			// }
 
 
 		}

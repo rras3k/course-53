@@ -46,28 +46,66 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
 
     if ('serviceWorker' in navigator) {
       //window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => {
-            console.log('SW enregistré:', reg.scope);
-            reg.onupdatefound = () => {
-              const installingWorker = reg.installing;
-              if (installingWorker) {
-                installingWorker.onstatechange = () => {
-                  if (installingWorker.state === 'installed') {
-                    if (navigator.serviceWorker.controller) {
-                      window.location.reload();
-                    }
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+          console.log('SW enregistré:', reg.scope);
+          reg.onupdatefound = () => {
+
+            console.log("update found")
+            const installingWorker = reg.installing;
+            if (installingWorker) {
+              installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed') {
+                  if (navigator.serviceWorker.controller) {
+                    window.location.reload();
                   }
-                };
-              }
-            };
-          })
-          .catch(err => console.error('SW erreur:', err));
+                }
+              };
+            }
+          };
+        })
+        .catch(err => console.error('SW erreur:', err));
       //});
     }
 
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        // sometime later…
+        reg.update();
+      });
+    }
 
 
+    /*
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      reg.installing; // the installing worker, or undefined
+      reg.waiting; // the waiting worker, or undefined
+      reg.active; // the active worker, or undefined
+    
+      reg.addEventListener('updatefound', () => {
+        // A wild service worker has appeared in reg.installing!
+        const newWorker = reg.installing;
+    
+        newWorker.state;
+        // "installing" - the install event has fired, but not yet complete
+        // "installed"  - install complete
+        // "activating" - the activate event has fired, but not yet complete
+        // "activated"  - fully active
+        // "redundant"  - discarded. Either failed install, or it's been
+        //                replaced by a newer version
+    
+        newWorker.addEventListener('statechange', () => {
+          // newWorker.state has changed
+        });
+      });
+    });
+    
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // This fires when the service worker controlling this page
+      // changes, eg a new worker has skipped waiting and become
+      // the new active worker.
+    });
+    */
 
 
     return () => {

@@ -17,8 +17,8 @@ import { useCourseTaxiContext } from '@/providers/course-taxi-provider'
 
 
 export default function CourseAction({ open, setOpen, coursesSel, filtre, rgpId, tripId }) {
-	const { courses} = useCourseTaxiContext()
-console.log("------------------------- CourseAction -------------------- ", rgpId, tripId, coursesSel)
+	const { courses } = useCourseTaxiContext()
+	console.log("------------------------- CourseAction -------------------- ", rgpId, tripId, coursesSel)
 	enum ActionType {
 		Inconnue = 0,
 		ACloturer = 2,
@@ -35,14 +35,14 @@ console.log("------------------------- CourseAction -------------------- ", rgpI
 	function setACloturer() {
 		setTypeAction(ActionType.ACloturer)
 		// setButtonLabel("Oui, je cloture !")
-		setTitle("Cloture de regroupement")
-		setDescription("Voulez vous cloturer ce regroupement de coursesSel ?")
+		setTitle("Clôture de regroupement")
+		setDescription("Voulez vous clôturer ce regroupement ?")
 	}
 	function setProposition() {
 		setTypeAction(ActionType.Proposition)
 		// setButtonLabel("Oui je prends !")
-		setTitle("Proposition de coursesSel")
-		setDescription("Voulez vous prendre ce regroupement de coursesSel ?")
+		setTitle("Proposition de regroupement")
+		setDescription("Voulez vous prendre ce regroupement ?")
 	}
 
 	/*** .
@@ -50,7 +50,7 @@ console.log("------------------------- CourseAction -------------------- ", rgpI
 	* @param 
 	* @returns 
 	*/
-	function analyseRgp(coursesSel:[]): void {
+	function analyseRgp(coursesSel: []): void {
 		coursesSel.map((course) => {
 			if (course.course_status !== "0") {
 				if (course.course_status == "1" && course.taxi_name !== "" && course.taxi_name !== null) {
@@ -85,7 +85,7 @@ console.log("------------------------- CourseAction -------------------- ", rgpI
 			// enlever la boite de dialogue
 			setOpen(false)
 		}
-		else{
+		else {
 			setMessage("La course n'est plus attribuable")
 			removeCourses(rgpId)
 
@@ -93,29 +93,28 @@ console.log("------------------------- CourseAction -------------------- ", rgpI
 		return retour
 	}
 
-	function setCoursesAfaire(rgpId){
+	function setCoursesAfaire(rgpId) {
 		const coursesTmp = courses.courses
 		coursesTmp.map((course) => {
-			if (course.course_status === "1" && course.rgp_course_id===rgpId) {
-				course.taxi_name="tous-sauf-vide"
+			if (course.course_status === "1" && course.rgp_course_id === rgpId) {
+				course.taxi_name = "tous-sauf-vide"
 			}
 		})
 		// setCourses(coursesTmp)
-        const channelCourses = new BroadcastChannel('sw-courses-data');
+		const channelCourses = new BroadcastChannel('sw-courses-data');
 		channelCourses.postMessage({ courses: coursesTmp, date: Date.now() })
 		channelCourses.close()
 
 	}
-	function removeCourses(rgpId){
+	function removeCourses(rgpId) {
 		const coursesTmp = []
 		courses.courses.map((course) => {
-			if (course.rgp_course_id!==rgpId) {
-				coursesTmp.push(course)			
+			if (course.rgp_course_id !== rgpId) {
+				coursesTmp.push(course)
 			}
 		})
 		// setCourses(coursesTmp)
-        
-		channelCourses = new BroadcastChannel('sw-courses-data');
+		const channelCourses = new BroadcastChannel('sw-courses-data');
 		channelCourses.postMessage({ courses: coursesTmp, date: Date.now() })
 		channelCourses.close()
 
@@ -132,7 +131,7 @@ console.log("------------------------- CourseAction -------------------- ", rgpI
 					"Content-Type": "application/json",
 				},
 				method: 'POST',
-				body: '{"tripId":"' + tripId  + '" }'
+				body: '{"tripId":"' + tripId + '" }'
 			}
 		)
 		const retour = await reponse.json();
@@ -143,18 +142,18 @@ console.log("------------------------- CourseAction -------------------- ", rgpI
 			// enlever la boite de dialogue
 			setOpen(false)
 		}
-		else{
+		else {
 			setMessage(retour?.message)
 
 		}
 		return retour
 	}
 
-	function setCloture(tripId){
+	function setCloture(tripId) {
 		const coursesTmp = courses.courses
 		coursesTmp.map((course) => {
-			if (course.course_status === "1" && course.course_id===tripId) {
-				course.course_status="2"
+			if (course.course_status === "1" && course.course_id === tripId) {
+				course.course_status = "2"
 			}
 		})
 		// setCourses(coursesTmp)
@@ -202,32 +201,34 @@ console.log("------------------------- CourseAction -------------------- ", rgpI
 				<DialogContent className="sm:max-w-[425px]">
 					<DialogHeader>
 						<DialogTitle>{title}</DialogTitle>
-						<DialogDescription>{description}</DialogDescription>
+						{/* <DialogDescription>{description}</DialogDescription> */}
 					</DialogHeader>
+
 					<CourseAffichage filtreCourse={filtre} courses={coursesSel} clickable={false} />
+
 					{!isButtonsVisible &&
 						<div className="text-center">
 							{message}
 						</div>
-
 					}
-					<DialogFooter>
+					<DialogFooter >
 						{isButtonsVisible &&
-							<>
-								<Button className="mr-3" onClick={() => { setOpen(false) }}>Fermer</Button>
+							<div className="flex flex-co justify-center ">
 								{(typeAction === ActionType.Proposition) &&
 									<>
-										<Button onClick={() => { buttonActionProposition("0") }}>Refuser</Button>
-										<Button onClick={() => { buttonActionProposition("1") }}>Accepter</Button>
+										<Button className="mr-3 " variant="secondary" onClick={() => { setOpen(false) }}>Fermer</Button>
+										<Button className="mr-3 " onClick={() => { buttonActionProposition("0") }}>Refuser</Button>
+										<Button className="mr-3 " onClick={() => { buttonActionProposition("1") }}>Accepter</Button>
 									</>
 								}
 								{(typeAction === ActionType.ACloturer) &&
 									<>
-										<Button onClick={() => { buttonActionCloturer() }}>Cloturer</Button>
+										<Button className="mr-3 " variant="secondary" onClick={() => { setOpen(false) }}>Fermer</Button>
+										<Button className="mr-3 " onClick={() => { buttonActionCloturer() }}>Cloturer</Button>
 									</>
 								}
-							</>
-						}
+							</div>
+}
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

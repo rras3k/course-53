@@ -28,15 +28,15 @@ import Update from "@/components/update"
 
 export default function Identification() {
 
-	// identClear() // suprime toutes données dans les caches et indexDb de l'identification
-	//setUrlApiDb() // Positionne l'url des appels API dans indexDb pour le webworker
+	identClear() // suprime toutes données dans les caches et indexDb de l'identification
+	// setUrlApiDb() // Positionne l'url des appels API dans indexDb pour le webworker
 	// const dejaFait = useRef(false)
 
 	console.log("=============================DANS IDENTIFICATION==================================")
 	const router = useRouter();
 	const [isErrorMsg, setIsErrorMsg] = useState(false);
-	const [isModeIdentification, setIsModeIdentification] = useState(true);
-	const channelToPong = new BroadcastChannel('pong');
+	// const [isModeIdentification, setIsModeIdentification] = useState(true);
+	// const channelToPong = new BroadcastChannel('pong');
 
 	const submit = () => {
 		const login = getInputStringValue("login")
@@ -56,19 +56,31 @@ export default function Identification() {
 		}
 	}
 
-	channelToPong.addEventListener('message', event => {
-		channelToPong.close()
-		console.log('from identfication Received pongdepuis identification, webwoker actif')
-		setIsModeIdentification(false)
-	});
+	// channelToPong.addEventListener('message', event => {
+	// 	channelToPong.close()
+	// 	console.log('from identfication Received pongdepuis identification, webwoker actif')
+	// 	setIsModeIdentification(false)
+	// });
 
-	function clickButtonCloseWebWorker() {
-		const channelCloseWebWorker = new BroadcastChannel('close-webworker');
-		channelCloseWebWorker.postMessage({ close: true })
-		channelCloseWebWorker.close()
-		console.log("envoi au webworker l'ordre d'arreter")
+	// function clickButtonCloseWebWorker() {
+	// 	// if ('serviceWorker' in navigator) {
+	// 	// 	navigator.serviceWorker
+	// 	// }
+	// 	// if ('serviceWorker' in navigator) {
+	// 	// 	navigator.serviceWorker.getRegistrations().then((registrations) => {
+	// 	// 	  registrations.forEach((registration) => {
+	// 	// 		registration.unregister().then(() => {
+	// 	// 		  console.log('Service worker unregistered');
+	// 	// 		});
+	// 	// 	  });
+	// 	// 	});
+	// 	//   }
+	// 	const channelCloseWebWorker = new BroadcastChannel('close-webworker');
+	// 	channelCloseWebWorker.postMessage({ close: true })
+	// 	channelCloseWebWorker.close()
+	// 	console.log("envoi au webworker l'ordre d'arreter")
 
-	}
+	// }
 
 	async function askIdent(login: string, mdp: string): Promise<boolean> {
 		try {
@@ -98,11 +110,25 @@ export default function Identification() {
 		return false;
 	}
 
-	useEffect(() => {
-		const channelToPing = new BroadcastChannel('ping');
-		channelToPing.postMessage({ isAlive: true }) // on demande au webWorker si il est toujours en activité
-		channelToPing.close()
-	})
+	// useEffect(() => {
+
+
+	// 	if ('serviceWorker' in navigator) {
+	// 		navigator.serviceWorker.getRegistrations().then((registrations) => {
+	// 			registrations.forEach((registration) => {
+	// 				registration.unregister().then(() => {
+	// 					console.log('Service worker unregistered');
+	// 				});
+	// 			});
+	// 		});
+	// 	}
+
+
+
+	// 	// const channelToPing = new BroadcastChannel('ping');
+	// 	// channelToPing.postMessage({ isAlive: true }) // on demande au webWorker si il est toujours en activité
+	// 	// channelToPing.close()
+	// })
 
 
 
@@ -110,42 +136,35 @@ export default function Identification() {
 
 	return (
 		<>
-			{/* <Update> */}
-			{isModeIdentification &&
-				<Card className="w-[340px] mx-auto my-10">
-					<CardHeader>
-						<CardTitle>Identification Course 53</CardTitle>
-						<CardDescription>Saisir vos identifiants</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<form>
-							<div className="grid w-full items-center gap-4">
-								<div className="flex flex-col space-y-1.5">
-									<Label htmlFor="name">Login</Label>
-									<Input id="login" type="text" placeholder="Saisissez votre login" defaultValue="artaxi" />
-								</div>
-								<div className="flex flex-col space-y-1.5">
-									<Label htmlFor="mdp">Mot de passe</Label>
-									<Input id="mdp" placeholder="Saisissez votre mot de passe" defaultValue="6808" />
-								</div>
+			<Card className="w-[340px] mx-auto my-10">
+				<CardHeader>
+					<CardTitle>Identification Course 53</CardTitle>
+					<CardDescription>Saisir vos identifiants</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<form>
+						<div className="grid w-full items-center gap-4">
+							<div className="flex flex-col space-y-1.5">
+								<Label htmlFor="name">Login</Label>
+								<Input id="login" type="text" placeholder="Saisissez votre login" defaultValue="artaxi" />
 							</div>
-						</form>
-						{isErrorMsg &&
-							<div className="text-red-700 font-bold my-3">
-								Saisie incorrect, veuillez recommencer
+							<div className="flex flex-col space-y-1.5">
+								<Label htmlFor="mdp">Mot de passe</Label>
+								<Input id="mdp" placeholder="Saisissez votre mot de passe" defaultValue="6808" />
 							</div>
-						}
-					</CardContent>
-					<CardFooter className="flex justify-between">
-						{/* <Button variant="outline">Cancel</Button> */}
-						<Button onClick={submit} className="bg-primary w-20 mx-auto">Ok</Button>
-					</CardFooter>
-				</Card>
-			}
-			{!isModeIdentification &&
-				<Button className="" onClick={clickButtonCloseWebWorker}>Quitter l'application</Button>
-			}
-			{/* </Update> */}
+						</div>
+					</form>
+					{isErrorMsg &&
+						<div className="text-red-700 font-bold my-3">
+							Saisie incorrect, veuillez recommencer
+						</div>
+					}
+				</CardContent>
+				<CardFooter className="flex justify-between">
+					{/* <Button variant="outline">Cancel</Button> */}
+					<Button onClick={submit} className="bg-primary w-20 mx-auto">Ok</Button>
+				</CardFooter>
+			</Card>
 		</>
 	)
 }

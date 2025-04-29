@@ -11,26 +11,27 @@ export default function Home() {
 
     useEffect(() => {
 
-        const profilId: string | null = identGetProfilId()
+        router.push('/taxi/courses')
+        // const profilId: string | null = identGetProfilId()
 
-        if (profilId) {
-            switch (profilId) {
-                case ProfilEnum.Taxi:
-                    router.push('/taxi/courses')
-                    break;
-                case ProfilEnum.Artaxi:
-                    router.push('/artaxi/courses')
-                    break;
-                case ProfilEnum.Admin:
-                    router.push('/admin/courses')
-                    break;
-                case ProfilEnum.Centrale:
-                    router.push('/centrale/courses')
-                    break;
-                default:
-                    break;
-            }
-        }
+        // if (profilId) {
+        //     switch (profilId) {
+        //         case ProfilEnum.Taxi:
+        //             router.push('/taxi/courses')
+        //             break;
+        //         case ProfilEnum.Artaxi:
+        //             router.push('/artaxi/courses')
+        //             break;
+        //         case ProfilEnum.Admin:
+        //             router.push('/admin/courses')
+        //             break;
+        //         case ProfilEnum.Centrale:
+        //             router.push('/centrale/courses')
+        //             break;
+        //         default:
+        //             break;
+        //     }
+        // }
 
     })
 

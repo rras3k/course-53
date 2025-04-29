@@ -67,13 +67,13 @@ const Parametrage = () => {
 								onCheckedChange={SwitchDisplayNotification} />
 						</EncartContent>
 					</Encart>}
-					<Encart>
+					{/* <Encart>
 						<EncartLabel>
 							Mise à jour
 						</EncartLabel>
 						<Button onClick={maj}>Mertte à jour</Button>
 
-					</Encart>
+					</Encart> */}
 				</div>
 			</div >
 		</>

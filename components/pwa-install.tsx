@@ -33,7 +33,7 @@ export default function PwaInstall({ children }: { children: React.ReactNode }) 
   }
 
   useEffect(() => {
-    console.log("iciiiiiiiiii",process.env.NEXT_PUBLIC_APP_ONLY,isPwaInstalled())
+    // console.log("iciiiiiiiiii",process.env.NEXT_PUBLIC_APP_ONLY,isPwaInstalled())
     if (process.env.NEXT_PUBLIC_APP_ONLY === "true" && !isPwaInstalled()) {
       console.log("installation")
       window.addEventListener('beforeinstallprompt', (e) => {

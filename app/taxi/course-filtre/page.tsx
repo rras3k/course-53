@@ -6,7 +6,7 @@ function CourseFiltre() {
 	const baseUrl:string = "/taxi/courses/"
 	return (
 		<div className="hiden md:flex flex-col items-center h-full ">
-			<Link href={baseUrl+"?filtre=a-faire-et-propositions"} className={"h-20 my-4 flex place-items-center justify-start text-center md:w-6/12 mx-5   border rounded-xl bg-green-300 hover:bg-green-400   text-2xl text-green-950 "}>
+			<Link href={baseUrl+"?filtre=a-faire-et-propositions"} className={"h-20 my-4 flex place-items-center justify-start text-center md:w-6/12 mx-5 h-30  border rounded-xl bg-green-300 hover:bg-green-400   text-2xl text-green-950 "}>
 				<div className="flex-auto">
 					Normal
 				</div>

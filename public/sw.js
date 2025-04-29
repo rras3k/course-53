@@ -15,6 +15,7 @@ const ASSETS_TO_CACHE = [
 	"/icon-192x192.png",
 	"/icon-384x384.png",
 	"/icon-512x512.png",
+	"/click.mp3",
 
 ];
 // "/aide",
@@ -63,6 +64,20 @@ self.addEventListener('activate', (event) => {
 
 // Stockage des requètes dans le cache
 self.addEventListener('fetch', (event) => {
+
+	let { request } = event;
+
+    if (request.headers.has('range')) {
+        // 206 responses are not cacheable
+        const newHeaders = new Headers(request.headers);
+        newHeaders.delete('range');
+        request = new Request(request.url, {
+            ...requestInitFromRequest(request),
+            headers: newHeaders,
+        });
+	}
+
+
 	if (event.request.method === "GET") {
 		event.respondWith(
 			caches.match(event.request).then((response) => {
@@ -85,6 +100,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 function clearCacheExcept(cacheName){
+	console.log("WS>Suppression cache =======================================================");
 	caches.keys().then((cacheNames) => {
 		return Promise.all(
 			cacheNames

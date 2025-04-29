@@ -143,7 +143,7 @@ route['/taxi/messages/'] = {titre:'messages',profilId:[ProfilEnum.Taxi]}
 
 
 export const getTitle = (pathname: string) => {
-    console.log("getTitle ", pathname)
+    // console.log("getTitle ", pathname)
     try{
         return (route[pathname]).titre;
     }

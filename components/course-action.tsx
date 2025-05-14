@@ -13,16 +13,17 @@ import {
 } from "@/components/ui/dialog"
 import { useEffect, useState } from "react";
 import { tokenName } from "@/lib/affinis"
-import { useCourseTaxiContext } from '@/providers/course-taxi-provider'
+// import { useCourseTaxiContext } from '@/providers/course-taxi-provider'
 
 
-export default function CourseAction({ open, setOpen, coursesSel, filtre, rgpId, tripId }) {
-	const { courses } = useCourseTaxiContext()
+export default function CourseAction({ open, setOpen, courses, coursesSel, filtre, rgpId, tripId }) {
+	// const { courses } = useCourseTaxiContext()
 	console.log("------------------------- CourseAction -------------------- ", rgpId, tripId, coursesSel)
 	enum ActionType {
 		Inconnue = 0,
 		ACloturer = 2,
 		Proposition = 1,
+		vueAnnulation = 3
 	}
 	const [typeAction, setTypeAction] = useState<number>(ActionType.Inconnue)
 	const [title, setTitle] = useState<string>("")
@@ -35,14 +36,20 @@ export default function CourseAction({ open, setOpen, coursesSel, filtre, rgpId,
 	function setACloturer() {
 		setTypeAction(ActionType.ACloturer)
 		// setButtonLabel("Oui, je cloture !")
-		setTitle("Clôture de regroupement")
-		setDescription("Voulez vous clôturer ce regroupement ?")
+		setTitle("Clôture d'une course")
+		setDescription("Voulez vous clôturer cette course ?")
 	}
 	function setProposition() {
 		setTypeAction(ActionType.Proposition)
 		// setButtonLabel("Oui je prends !")
 		setTitle("Proposition de regroupement")
 		setDescription("Voulez vous prendre ce regroupement ?")
+	}
+	function setVuAnnulation() {
+		setTypeAction(ActionType.vueAnnulation)
+		// setButtonLabel("Oui je prends !")
+		setTitle("Masquer une annulation")
+		setDescription("Voulez vous masquer cette course ?")
 	}
 
 	/*** .
@@ -61,9 +68,20 @@ export default function CourseAction({ open, setOpen, coursesSel, filtre, rgpId,
 					setProposition()
 				}
 			}
+			if (course.course_status == "0" && course.masque == "0") {
+				setVuAnnulation()
+			}
 		})
 	}
 
+
+	// --------------------------------------------------------- PROPOSITION -----------------------------------------------------------
+
+	/*** .
+	*
+	* @param 
+	* @returns 
+	*/
 	async function buttonActionProposition(value: string) {
 		setIsButtonsVisible(false)
 		const reponse = await fetch(
@@ -77,13 +95,26 @@ export default function CourseAction({ open, setOpen, coursesSel, filtre, rgpId,
 				body: '{"rideId":"' + rgpId + '", "reponse":"' + value + '" }'
 			}
 		)
+		console.log("attente retour de confirmation prise de course")
 		const retour = await reponse.json();
 		if (retour?.retour) {
+			let coursesTmp = []
 			// reponse ok
-			// passer en vert les datas concernés
-			setCoursesAfaire(rgpId)
+			if (value == "1") { // le taxi avait dit "oui"
+				// passer en vert les datas concernés
+				const coursesTmp = setCoursesAfaire(rgpId)
+			}
+			else { // le taxi avait dit "non"
+				const coursesTmp = removeCourses(rgpId)
+			}
 			// enlever la boite de dialogue
 			setOpen(false)
+
+			// Envoi un message
+			const channelCourseschanged = new BroadcastChannel('course-changed');
+			channelCourseschanged.postMessage({ trips: coursesTmp })
+			channelCourseschanged.close()
+
 		}
 		else {
 			setMessage("La course n'est plus attribuable")
@@ -93,32 +124,48 @@ export default function CourseAction({ open, setOpen, coursesSel, filtre, rgpId,
 		return retour
 	}
 
+	/*** .
+	*
+	* @param 
+	* @returns 
+	*/
 	function setCoursesAfaire(rgpId) {
-		const coursesTmp = courses.courses
+		const coursesTmp = courses
 		coursesTmp.map((course) => {
 			if (course.course_status === "1" && course.rgp_course_id === rgpId) {
 				course.taxi_name = "tous-sauf-vide"
 			}
 		})
 		// setCourses(coursesTmp)
-		const channelCourses = new BroadcastChannel('sw-courses-data');
-		channelCourses.postMessage({ courses: coursesTmp, date: Date.now() })
-		channelCourses.close()
-
+		// const channelCourses = new BroadcastChannel('sw-flow-server-data');
+		// channelCourses.postMessage({ courses: coursesTmp, date: Date.now() })
+		// channelCourses.close()
+		return coursesTmp
 	}
+
 	function removeCourses(rgpId) {
-		const coursesTmp = []
-		courses.courses.map((course) => {
-			if (course.rgp_course_id !== rgpId) {
-				coursesTmp.push(course)
+		const coursesTmp = courses
+		let indice = 0
+		let indicesToRemove = []
+
+		coursesTmp.map((course) => {
+			if (course.rgp_course_id === rgpId) {
+				indicesToRemove.unshift(indice)
 			}
+			indice++
 		})
-		// setCourses(coursesTmp)
-		const channelCourses = new BroadcastChannel('sw-courses-data');
-		channelCourses.postMessage({ courses: coursesTmp, date: Date.now() })
-		channelCourses.close()
+		indicesToRemove.map((ind) => {
+			coursesTmp.splice(ind, 1)
+		})
+
+		// const channelCourses = new BroadcastChannel('sw-flow-server-data');
+		// channelCourses.postMessage({ courses: coursesTmp, date: Date.now() })
+		// channelCourses.close()
+		return coursesTmp
 
 	}
+
+	// --------------------------------------------------------- CLOTURER -----------------------------------------------------------
 
 	async function buttonActionCloturer() {
 
@@ -150,50 +197,54 @@ export default function CourseAction({ open, setOpen, coursesSel, filtre, rgpId,
 	}
 
 	function setCloture(tripId) {
-		const coursesTmp = courses.courses
+		const coursesTmp = courses
 		coursesTmp.map((course) => {
 			if (course.course_status === "1" && course.course_id === tripId) {
 				course.course_status = "2"
 			}
 		})
 		// setCourses(coursesTmp)
-		const channelCourses = new BroadcastChannel('sw-courses-data');
+		const channelCourses = new BroadcastChannel('sw-flow-server-data');
 		channelCourses.postMessage({ courses: coursesTmp, date: Date.now() })
 		channelCourses.close()
 	}
 
-	// analyseRgp(datas)
+	// --------------------------------------------------------- ANNULATION -----------------------------------------------------------
+
+	async function buttonActionVuAnnulation() {
+
+		setIsButtonsVisible(false)
+		const reponse = await fetch(
+			process.env.NEXT_PUBLIC_API_URL + '/trip/masque'
+			, {
+				headers: {
+					'Authorization': `Bearer ${localStorage.getItem(tokenName)}`,
+					"Content-Type": "application/json",
+				},
+				method: 'POST',
+				body: '{"tripId":"' + tripId + '" }'
+
+			}
+		)
+		const retour = await reponse.json();
+		if (retour?.retour) {
+			// reponse ok
+			// passer en vert les datas concernés
+			setVuAnnulation(tripId)
+			// enlever la boite de dialogue
+			setOpen(false)
+		}
+		else {
+			setMessage(retour?.message)
+
+		}
+		return retour
+	}
+
 	useEffect(() => {
-		// setDatas( getcoursesSelForRgpId(coursesSel.datas.data, rgpId))
 		analyseRgp(coursesSel)
-		// setTitlea("Proposition de coursesSel")
 	})
 
-	// proposition
-	// useEffect(() => {
-	// 	console.log("-------------------------- USEEFFECT CourseAction refresh -------------------------------")
-
-	// 	async function doRequete() {
-	// 		const reponse = await fetch(
-	// 			process.env.NEXT_PUBLIC_API_URL + '/trip/proposal/answer'
-	// 			, {
-	// 				headers: {
-	// 					'Authorization': `Bearer ${localStorage.getItem(tokenName)}`,
-	// 					"Content-Type": "application/json",
-	// 				},
-	// 				method: 'POST',
-	// 				body: '{"rideId":"' + rgpId + '", "password":"' + value + '" }'
-	// 			}
-	// 		)
-	// 		const retour = await reponse.json();
-
-	// 		console.log("retour", rgpId, value, retour)
-	// 		if (retour?.message) {
-	// 			console.log("message", message)
-	// 			setMessage(retour?.message)
-	// 		}
-	// 	}
-	// }, [refresh])
 
 	return (
 		<>
@@ -216,19 +267,25 @@ export default function CourseAction({ open, setOpen, coursesSel, filtre, rgpId,
 							<div className="flex flex-co justify-center ">
 								{(typeAction === ActionType.Proposition) &&
 									<>
-										<Button className="mr-3 " variant="secondary" onClick={() => { setOpen(false) }}>Fermer</Button>
+										{/* <Button className="mr-3 " variant="secondary" onClick={() => { setOpen(false) }}>Fermer</Button> */}
 										<Button className="mr-3 " onClick={() => { buttonActionProposition("0") }}>Refuser</Button>
 										<Button className="mr-3 " onClick={() => { buttonActionProposition("1") }}>Accepter</Button>
 									</>
 								}
 								{(typeAction === ActionType.ACloturer) &&
 									<>
-										<Button className="mr-3 " variant="secondary" onClick={() => { setOpen(false) }}>Fermer</Button>
+										{/* <Button className="mr-3 " variant="secondary" onClick={() => { setOpen(false) }}>Fermer</Button> */}
 										<Button className="mr-3 " onClick={() => { buttonActionCloturer() }}>Cloturer</Button>
 									</>
 								}
+								{(typeAction === ActionType.vueAnnulation) &&
+									<>
+										{/* <Button className="mr-3 " variant="secondary" onClick={() => { setOpen(false) }}>Fermer</Button> */}
+										<Button className="mr-3 " onClick={() => { buttonActionVuAnnulation() }}>Masquer</Button>
+									</>
+								}
 							</div>
-}
+						}
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>

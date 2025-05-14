@@ -9,13 +9,16 @@ let interval = null
 const channelInitVar = new BroadcastChannel('initvar')
 
 // Post d'un boolean indiquant si detection de proposition lors de la derniere reception de courses pour un taxi
-const channelHasNotification = new BroadcastChannel('sw-hasNotification');
+const channelProposition = new BroadcastChannel('sw-hasNotification');
 
 // Post d'un tableau JSON contenant la derniere reception de courses pour un taxi
-const channelCourseData = new BroadcastChannel('sw-courses-data');
+// const channelCourseData = new BroadcastChannel('sw-courses-data');
 
 // Post d'un tableau JSON contenant la derniere reception des messages pour un taxi
-const channelMessages = new BroadcastChannel('sw-messages-data');
+// const channelMessages = new BroadcastChannel('sw-messages-data');
+
+// Post tableau JSON contenant courses et messages du serveur
+const channelFlowFromServer = new BroadcastChannel('sw-flow-server-data');
 
 // Post d'un tableau JSON contenant la derniere reception de courses de tous les taxis
 const channelAllCourseData = new BroadcastChannel('sw-all-courses-data');
@@ -25,6 +28,8 @@ const channelToDeconnect = new BroadcastChannel('sw-to-deconnect');
 
 // Listener d'un boolean indiquant si il faut supprimer toute trace de la derniere session dans le web worker
 const channelToDeconnectToSW = new BroadcastChannel('deconnect');
+
+const channelCourseschanged = new BroadcastChannel('course-changed');
 
 // Listener d'un boolean indiquant si il faut supprimer toute tra
 // ce de la derniere session dans le web worker
@@ -46,7 +51,7 @@ channelInitVar.addEventListener('message', event => {
 // channelCloseWebWorker.addEventListener('message', event => {
 // 	console.log('WS> Received ordre d arreter ', event.data)
 
-	
+
 
 // 	// if ("serviceWorker" in navigator) {
 // 	// 	console.log("close 1")
@@ -74,9 +79,20 @@ channelInitVar.addEventListener('message', event => {
 channelToDeconnectToSW.addEventListener('message', event => {
 	console.log('Received channelToDeconnectToSW', event.data)
 	identClear()
-	//channelHasNotification.postMessage({ hasProposition: false, date: Date.now() })
+	//channelProposition.postMessage({ hasProposition: false, date: Date.now() })
 });
 
+channelCourseschanged.addEventListener('message', event => {
+	console.log('Received channelCourseschanged', event.data)
+	manageTripsFlow(event.data)
+});
+
+/**
+* 
+*
+* @param 
+* @returns 
+*/
 function identClearAndPost() {
 	console.log(" ============== RESET AND POST===============")
 	identClear()
@@ -84,6 +100,12 @@ function identClearAndPost() {
 	channelToDeconnect.postMessage({ deconnect: true })
 }
 
+/**
+* 
+*
+* @param 
+* @returns 
+*/
 function identClear() {
 	console.log(" ============== RESET (identClear) ===============")
 	profilId = ""
@@ -112,6 +134,12 @@ function identClear() {
 // 	backProcess()
 // }
 
+/**
+* 
+*
+* @param 
+* @returns 
+*/
 function backProcess() {
 	backProcessAction()
 	interval = setInterval(async () => {
@@ -121,24 +149,44 @@ function backProcess() {
 	return () => clearInterval(interval)
 }
 
+/**
+* 
+*
+* @param 
+* @returns 
+*/
 function backProcessAction() {
 	console.log("WS> backProcessAction", token)
 	getCoursesTaxi()
 }
 
+/**
+* 
+*
+* @param 
+* @returns 
+*/
 async function getTokenUrlApi() {
-	// let token = ""
-	// let urlApi = ""
 	token = await get("token")
 	urlApi = await get("urlApi")
-	// console.log(" getTokenUrlApi => token, urlApi", token, urlApi)
-	// return [token, urlApi]
 }
 
+/**
+* 
+*
+* @param 
+* @returns 
+*/
 function isVarOkForFetch() {
 	return !(token === "" || urlApi === "" || token === undefined || urlApi === undefined)
 }
 
+/**
+* 
+*
+* @param 
+* @returns 
+*/
 async function getCoursesTaxi() {
 
 	console.log("> getCoursesTaxi", token, urlApi)
@@ -152,7 +200,6 @@ async function getCoursesTaxi() {
 		identClearAndPost()
 	}
 
-	//api.artaxi-laval.chantier.algozzy.ovh/trips/today/
 	if (!isVarOkForFetch()) return ""
 	try {
 		const response = await fetch(
@@ -175,18 +222,22 @@ async function getCoursesTaxi() {
 			// token = ""
 		}
 		else {
-			channelCourseData.postMessage({ courses: data.data.courses, date: constdateNow })
-			channelMessages.postMessage({ messages: data.data.messages, date: constdateNow })
+			console.log("WS> receive from serveur", data)
+			// channelCourseData.postMessage({ courses: data.data.courses, date: constdateNow })
+			// channelMessages.postMessage({ messages: data.data.messages, date: constdateNow })
+			channelFlowFromServer.postMessage({ flow: data.data, date: constdateNow })
 			lastCoursesDatasReceive = Date.now()
 
+			manageTripsFlow(data)
 
-			if (dcHasProposition(data)) {
-				console.log("show notification")
-				sendNotification("Nouvelles propositions de course", "Veuillez valider les courses à prendre");
-				channelHasNotification.postMessage({ hasProposition: true, date: constdateNow })
-			}
+
+			// if (dcHasProposition(data)) {
+			// 	console.log("show notification")
+			// 	sendNotification("Nouvelles propositions de course", "Veuillez valider les courses à prendre");
+			// 	channelProposition.postMessage({ hasProposition: true, date: constdateNow })
+			// }
 			// else {
-			// 	channelHasNotification.postMessage({ hasProposition: false, date: constdateNow })
+			// 	channelProposition.postMessage({ hasProposition: false, date: constdateNow })
 			// }
 
 
@@ -226,7 +277,57 @@ async function getCoursesTaxi() {
 // 	}
 // }
 
-const dcHasProposition = (datas) => {
+
+
+/**
+* Gère la sauvegarde des courses et des alertes:
+* 	Soit celles qui viennent du serveur
+*	Soit celles qui viennent après modification utilisateur 
+*
+* @param 
+* @returns 
+*/
+function manageTripsFlow(trips) {
+	if (trips === undefined || !Array.isArray(trips)) {
+		// erreur, ne devrait jamais être dans ce cas là
+		console.log("erreur de format des courses")
+		// on sauvegarde une liste des courses vides
+		setCoursesIntoDb([])
+		return null
+	}
+	// on sauvegarde la liste des courses 
+	setCoursesIntoDb(trips)
+
+	// Les courses contiennent t'elles des propositions
+	if (hasProposition(data)) {
+		sendNotification("Nouvelles propositions de course", "Veuillez valider les courses à prendre");
+		channelProposition.postMessage({ hasProposition: true, date: constdateNow })
+	}
+	else {
+		channelProposition.postMessage({ hasProposition: false, date: constdateNow })
+	}
+}
+
+
+/**
+* 
+*
+* @param 
+* @returns 
+*/
+function setCoursesIntoDb(data){
+	console.log("setCourseIntoDb(data: object[])",data)
+	set("courses",data)
+}
+
+
+/**
+* 
+*
+* @param 
+* @returns 
+*/
+const hasProposition = (datas) => {
 	let hasProposition = false;
 	datas.data.courses.map((course) => {
 		hasProposition = hasProposition || (course.course_status == "1" && (course.taxi_name == "" || course.taxi_name == null));
@@ -234,6 +335,12 @@ const dcHasProposition = (datas) => {
 	return hasProposition;
 }
 
+/**
+* 
+*
+* @param 
+* @returns 
+*/
 const sendNotification = async (title, text) => {
 	get("stateDisplayNotification")
 		.then((value) => {
@@ -261,6 +368,12 @@ const sendNotification = async (title, text) => {
 		})
 };
 
+/**
+* 
+*
+* @param 
+* @returns 
+*/
 const showNotification = async (title, text) => {
 	if (title && text) {
 		const payload = {

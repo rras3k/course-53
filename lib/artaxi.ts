@@ -78,6 +78,30 @@ export function identGetProfilId() {
 	return localStorage.getItem("profilId")
 }
 
+export function setCoursesIntoDb(data: object[]){
+	console.log("setCourseIntoDb(data: object[])",data)
+	set("courses",data)
+}
+
+export async function getCoursesFromDb(): Promise<object[] | undefined> {
+	return await get("courses")
+}
+
+export function setMessagesIntoDb(data: object[]){
+	console.log("setMessagesIntoDb(data: object[])",data)
+	set("messages",data)
+}
+
+export async function getMessagesFromDb(): Promise<object[] | undefined> {
+	return await get("messages")
+}
 
 
 
+const dcHasProposition = (datas) => {
+	let hasProposition = false;
+	datas.data.courses.map((course) => {
+		hasProposition = hasProposition || (course.course_status == "1" && (course.taxi_name == "" || course.taxi_name == null));
+	});
+	return hasProposition;
+}

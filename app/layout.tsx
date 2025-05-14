@@ -8,10 +8,12 @@ import React from "react";
 import LayoutRoute from "./layoutRoute";
 import ScreenWakeLock from "@/components/screen-wake-lock";
 import HasPorpositionProvider from "@/providers/has-proposition-provider";
+import FlowTaxiProvider from "@/providers/flow-taxi-provider";
 import CourseTaxiProvider from "@/providers/course-taxi-provider";
 import CourseAllTaxiProvider from "@/providers/course-all-taxi-provider";
 import MessageTaxiProvider from "@/providers/message-taxi-provider";
 import PwaInstall from "@/components/pwa-install"
+import Flow from "@/components/flow"
 import { Suspense } from 'react'
 import { useEffect } from "react";
 
@@ -125,25 +127,23 @@ export default function RootLayout({ children, }: Readonly<{ children: React.Rea
         {/* <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange> */}
         <PwaInstall>
           <LayoutRoute>
-            {/* <ScreenWakeLock /> */}
-            <HasPorpositionProvider>
-              <Suspense>
-                <NavHor />
-              </Suspense>
-            </HasPorpositionProvider>
-            <CourseTaxiProvider>
-              <MessageTaxiProvider>
-                <CourseAllTaxiProvider>
-                  <div className="pt-12 bg-black-800">
-                    <div className="mx-auto md:w-[768px]">
-                      <Suspense>
-                        {children}
-                      </Suspense>
-                    </div>
+            <Flow>
+              <ScreenWakeLock />
+              <HasPorpositionProvider>
+                <Suspense>
+                  <NavHor />
+                </Suspense>
+              </HasPorpositionProvider>
+              <FlowTaxiProvider>
+                <div className="pt-12 bg-black-800">
+                  <div className="mx-auto md:w-[768px]">
+                    <Suspense>
+                      {children}
+                    </Suspense>
                   </div>
-                </CourseAllTaxiProvider>
-              </MessageTaxiProvider>
-            </CourseTaxiProvider>
+                </div>
+              </FlowTaxiProvider>
+            </Flow>
           </LayoutRoute>
         </PwaInstall>
         {/* </ThemeProvider> */}

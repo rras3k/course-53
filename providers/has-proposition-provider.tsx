@@ -25,9 +25,11 @@ export default function HasPropositionProvider({ children }: { children: React.R
         const channelHasNotification = new BroadcastChannel('sw-hasNotification');
         channelHasNotification.addEventListener('message', event => {
             console.log('Received PROVIDER sw-hasNotification', event.data.hasProposition);
+            if (event.data.hasProposition) {
+                const audio = new Audio('/click.mp3');
+                audio.play();
+            }
             setHasProposition(event.data.hasProposition);
-            const audio = new Audio('/click.mp3');
-            audio.play();
         });
     }
 
